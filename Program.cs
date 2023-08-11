@@ -6,7 +6,43 @@ namespace HangarooGame
     {
         static void Main(string[] args)
         {
-            string[] puzzles = { "apple", "banana", "cherry" };
+            bool continuePlaying = true;
+
+            while (continuePlaying)
+            {
+                PlayHangaroo();
+                Console.Write("Do you want to play again? (yes/no): ");
+                string playAgainInput = Console.ReadLine().ToLower();
+                continuePlaying = playAgainInput == "yes";
+            }
+
+            Console.WriteLine("Thanks for playing Hangaroo!");
+        }
+
+        static void PlayHangaroo()
+        {
+           
+
+           
+
+            Dictionary<string, string[]> wordLists = new Dictionary<string, string[]>
+            {
+                { "easy", new string[] { "cat", "dog", "hat", "sun" } },
+                { "normal", new string[] { "apple", "banana", "cherry", "grape" } },
+                { "hard", new string[] { "elephant", "giraffe", "kangaroo", "rhinoceros" } }
+            };
+
+            Console.WriteLine("Welcome to Hangaroo!");
+            Console.Write("Choose a difficulty level (easy/normal/hard): ");
+            string difficultyLevel = Console.ReadLine().ToLower();
+
+            if (!wordLists.ContainsKey(difficultyLevel))
+            {
+                Console.WriteLine("Invalid difficulty level. Playing on normal difficulty.");
+                difficultyLevel = "normal";
+            }
+
+             string[] puzzles = wordLists[difficultyLevel];
             int maxTrials = 4;
             int currentTrials = 0;
             int score = 0;
@@ -16,15 +52,16 @@ namespace HangarooGame
             string currentPuzzle = puzzles[random.Next(puzzles.Length)];
             char[] guessedLetters = new char[currentPuzzle.Length];
 
-            Console.WriteLine("Welcome to Hangaroo!");
+            Console.WriteLine($"You've chosen {difficultyLevel} difficulty level.");
             Console.WriteLine("Try to guess the letters of the hidden word.");
+
 
             while (currentTrials < maxTrials)
             {
                 Console.WriteLine($"Current puzzle: {DisplayPuzzle(currentPuzzle, guessedLetters)}");
                 Console.WriteLine($"Remaining trials: {maxTrials - currentTrials}");
                 Console.WriteLine($"Remaining hints: {remainingHints}");
-                Console.Write("Enter your guess or 'h' for a hint: ");
+                Console.Write("Enter your guess or enter a number for a hint: ");
                 string input = Console.ReadLine().ToLower();
 
                 if (input.Length == 1 && char.IsLetter(input[0]))
@@ -56,11 +93,8 @@ namespace HangarooGame
                         if (IsPuzzleSolved(currentPuzzle, guessedLetters))
                         {
                             score += 100;
-                            Console.WriteLine($"Congratulations! You solved the puzzle. Current score: {score}");
-                            currentPuzzle = puzzles[random.Next(puzzles.Length)];
-                            guessedLetters = new char[currentPuzzle.Length];
-                            currentTrials = 0;
-                            remainingHints = maxHints; // Reset hints
+                            Console.WriteLine($"Congratulations! You solved the puzzle for the word {currentPuzzle}. Current score: {score}");
+                            break;
                         }
                     }
                     else
@@ -68,10 +102,10 @@ namespace HangarooGame
                         Console.WriteLine("Invalid guess. Please enter a letter you haven't guessed before.");
                     }
                 }
-                else if (input == "h" && remainingHints > 0)
+                else if (int.TryParse(input, out int hintNumber) && hintNumber >= 1 && hintNumber <= currentPuzzle.Length && remainingHints > 0)
                 {
                     remainingHints--;
-                    char hintLetter = GetHintLetter(currentPuzzle, guessedLetters);
+                    char hintLetter = currentPuzzle[hintNumber - 1];
                     Console.WriteLine($"Hint: Try guessing the letter '{hintLetter}'.");
                 }
                 else
@@ -80,8 +114,17 @@ namespace HangarooGame
                 }
             }
 
-            Console.WriteLine($"Game Over. Your final score: {score}");
+            if (IsPuzzleSolved(currentPuzzle, guessedLetters))
+            {
+                Console.WriteLine("You won!");
+            }
+            else
+            {
+                Console.WriteLine("You lost! The correct answer was: " + currentPuzzle);
+            }
         }
+
+        // ... (previous code)
 
         static string DisplayPuzzle(string puzzle, char[] guessedLetters)
         {
@@ -146,3 +189,5 @@ namespace HangarooGame
         }
     }
 }
+
+ 
