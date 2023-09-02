@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HangarooGame
 {
@@ -14,7 +15,11 @@ namespace HangarooGame
                 PlayHangaroo();
                 Console.Write("Do you want to play again? (yes/no): ");
                 string playAgainInput = Console.ReadLine().ToLower();
-                continuePlaying = playAgainInput == "yes";
+
+                string[] playAgainConfirmation = {"yes", "YES", "Y", "y", "Yes"}; 
+                if (!playAgainConfirmation.Contains(playAgainInput)){
+                    continuePlaying = false;
+                }
             }
 
             Console.WriteLine("Thanks for playing Hangaroo!");
@@ -29,9 +34,17 @@ namespace HangarooGame
                 { "hard", new string[] { "elephant", "giraffe", "kangaroo", "rhinoceros" } }
             };
 
+            Dictionary<string, string[]> wordListsSummary = new Dictionary<string, string[]>
+            {
+                { "easy", new string[] { "a small domesticated carnivorous mammal", "a domesticated carnivorous mammal", "a covering for the head", "the star around which the Earth orbits" } },
+                { "normal", new string[] { "a fruit with red or yellow skin and firm white flesh", "a long curved fruit with a yellow skin", "a small, round stone fruit that is typically bright or dark red", "a small, sweet fruit with a thin skin" } },
+                { "hard", new string[] { "a very large herbivorous mammal with a trunk", "a large African mammal with a very long neck and forelegs", "a large Australian marsupial with powerful hind legs", "a large, thick-skinned animal with one or two horns on its snout" } }
+            };
+
+
             Console.WriteLine("Welcome to Hangaroo!");
             Console.Write("Choose a level (easy/normal/hard): ");
-            string difficultyLevel = Console.ReadLine().ToLower();
+            string difficultyLevel = Console.ReadLine()!.ToLower();
 
             if (!wordLists.ContainsKey(difficultyLevel))
             {
@@ -40,30 +53,39 @@ namespace HangarooGame
             }
 
             string[] puzzles = wordLists[difficultyLevel];
+            string[] puzzlesDescription = wordListsSummary[difficultyLevel];
             int maxTrials = 4;
             int currentTrials = 0;
             int score = 0;
+
             Random random = new Random();
-            string currentPuzzle = puzzles[random.Next(puzzles.Length)];
+            var randomIndexValue = random.Next(puzzles.Length);
+            string currentPuzzle = puzzles[randomIndexValue];
+            string currentDescription = puzzlesDescription[randomIndexValue];
+
             char[] guessedLetters = new char[currentPuzzle.Length];
+            HashSet<char> guessedLettersSet = new HashSet<char>();
 
             Console.WriteLine($"You've chosen {difficultyLevel} difficulty level.");
             Console.WriteLine("Try to guess the letters of the hidden word.");
 
             while (currentTrials < maxTrials)
             {
+                Console.WriteLine($"Puzzle description: {currentDescription}");
                 Console.WriteLine($"Current puzzle: {DisplayPuzzle(currentPuzzle, guessedLetters)}");
                 Console.WriteLine($"Remaining trials: {maxTrials - currentTrials}");
-                Console.Write("Enter your guess: ");
-                string input = Console.ReadLine().ToLower();
+                Console.Write("Enter your guess(single character and press enter): ");
+                string input = Console.ReadLine()!.ToLower();
 
                 if (input.Length == 1 && char.IsLetter(input[0]))
                 {
                     char guess = input[0];
 
-                    if (IsValidGuess(guess, guessedLetters))
+                    if (!guessedLettersSet.Contains(guess))
                     {
+                        guessedLettersSet.Add(guess);
                         bool found = false;
+
                         for (int i = 0; i < currentPuzzle.Length; i++)
                         {
                             if (currentPuzzle[i] == guess)
@@ -75,7 +97,7 @@ namespace HangarooGame
 
                         if (found)
                         {
-                            Console.WriteLine("Correct guess!");
+                            Console.WriteLine("Correct guess, enter the next character!");
                         }
                         else
                         {
@@ -92,12 +114,12 @@ namespace HangarooGame
                     }
                     else
                     {
-                        Console.WriteLine("Invalid guess. Please enter a letter you haven't guessed before.");
+                        Console.WriteLine("You've already guessed this letter. Please enter a new letter.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Invalid input.");
+                    Console.WriteLine("Invalid input. Please enter a single letter.");
                 }
             }
 
@@ -128,27 +150,6 @@ namespace HangarooGame
                 display += " ";
             }
             return display;
-        }
-
-        static bool IsValidGuess(char guess, char[] guessedLetters)
-        {
-            if (!char.IsLetter(guess))
-            {
-                return false;
-            }
-
-            guess = char.ToLower(guess);
-            return !guessedLetters.Contains(guess);
-        }
-            foreach (char letter in guessedLetters)
-            {
-                if (guess == letter)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         static bool IsPuzzleSolved(string puzzle, char[] guessedLetters)
